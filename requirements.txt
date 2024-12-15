@@ -10,6 +10,10 @@ pandas
 wandb
 comet_ml
 hydra-core
+datasets
+pyctcdecode
+editdistance
+wget
 
 black
 isort

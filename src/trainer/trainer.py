@@ -95,6 +95,7 @@ class Trainer(BaseTrainer):
         # TODO add beam search
         # Note: by improving text encoder and metrics design
         # this logging can also be improved significantly
+        # DONE
 
         argmax_inds = log_probs.cpu().argmax(-1).numpy()
         argmax_inds = [
@@ -103,20 +104,31 @@ class Trainer(BaseTrainer):
         ]
         argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
         argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
-        tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
+
+        predictions = [
+            self.text_encoder.ctc_beam_search(log_prob[:len])
+            for log_prob, len in zip(log_probs, log_probs_length)
+        ]
+        tuples = list(zip(argmax_texts, predictions, text, argmax_texts_raw, audio_path))
 
         rows = {}
-        for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
+        for argmax_pred, beam_search_pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
             target = self.text_encoder.normalize_text(target)
-            wer = calc_wer(target, pred) * 100
-            cer = calc_cer(target, pred) * 100
+            wer_argmax = calc_wer(target, argmax_pred) * 100
+            cer_argmax = calc_cer(target, argmax_pred) * 100
+
+            wer_beam_search = calc_wer(target, beam_search_pred) * 100
+            cer_beam_search = calc_cer(target, beam_search_pred) * 100
 
             rows[Path(audio_path).name] = {
                 "target": target,
                 "raw prediction": raw_pred,
-                "predictions": pred,
-                "wer": wer,
-                "cer": cer,
+                "argmax_predictions": argmax_pred,
+                "wer_argmax": wer_argmax,
+                "cer_argmax": cer_argmax,
+                "beam_search_predictions": beam_search_pred,
+                "wer_beam_search": wer_beam_search,
+                "cer_beam_search": cer_beam_search,
             }
         self.writer.add_table(
             "predictions", pd.DataFrame.from_dict(rows, orient="index")

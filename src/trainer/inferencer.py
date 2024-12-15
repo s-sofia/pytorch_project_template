@@ -1,8 +1,13 @@
+from pathlib import Path
+
+import pandas as pd
+
 import torch
 from tqdm.auto import tqdm
 
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
+from src.metrics.utils import calc_cer, calc_wer
 
 
 class Inferencer(BaseTrainer):
@@ -83,6 +88,12 @@ class Inferencer(BaseTrainer):
         if not skip_model_load:
             # init model
             self._from_pretrained(config.inferencer.get("from_pretrained"))
+        
+        self.wer_argmax_total = 0.
+        self.cer_argmax_total = 0.
+        self.wer_beam_total = 0.
+        self.cer_beam_total = 0.
+        self.counter_writings = 0
 
     def run_inference(self):
         """
@@ -122,13 +133,15 @@ class Inferencer(BaseTrainer):
         """
         # TODO change inference logic so it suits ASR assignment
         # and task pipeline
+        # DONE
 
         batch = self.move_batch_to_device(batch)
         batch = self.transform_batch(batch)  # transform batch on device -- faster
 
         outputs = self.model(**batch)
         batch.update(outputs)
-
+        self.log_predictions(**batch)
+        return
         if metrics is not None:
             for met in self.metrics["inference"]:
                 metrics.update(met.name, met(**batch))
@@ -193,3 +206,52 @@ class Inferencer(BaseTrainer):
                 )
 
         return self.evaluation_metrics.result()
+    def log_predictions(
+        self, text, log_probs, log_probs_length, audio_path, examples_to_log=10, **batch
+    ):
+
+        argmax_inds = log_probs.cpu().argmax(-1).numpy()
+        argmax_inds = [
+            inds[: int(ind_len)]
+            for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())
+        ]
+        argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
+        argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
+
+        predictions = [
+            self.text_encoder.ctc_beam_search(log_prob[:len])
+            for log_prob, len in zip(log_probs, log_probs_length)
+        ]
+        tuples = list(zip(argmax_texts, predictions, text, argmax_texts_raw, audio_path))
+
+        rows = {}
+        for argmax_pred, beam_search_pred, target, raw_pred, audio_path in tuples:
+            target = self.text_encoder.normalize_text(target)
+            wer_argmax = calc_wer(target, argmax_pred) * 100
+            cer_argmax = calc_cer(target, argmax_pred) * 100
+
+            wer_beam_search = calc_wer(target, beam_search_pred) * 100
+            cer_beam_search = calc_cer(target, beam_search_pred) * 100
+
+            self.wer_argmax_total += wer_argmax
+            self.cer_argmax_total += cer_argmax
+            self.wer_beam_total += wer_beam_search
+            self.cer_beam_total += cer_beam_search
+            self.counter_writings += 1
+ 
+            rows[Path(audio_path).name] = {
+                "target": target,
+                "raw prediction": raw_pred,
+                "argmax_predictions": argmax_pred,
+                "wer_argmax": wer_argmax,
+                "cer_argmax": cer_argmax,
+                "beam_search_predictions": beam_search_pred,
+                "wer_beam_search": wer_beam_search,
+                "cer_beam_search": cer_beam_search,
+            }
+        df = pd.DataFrame.from_dict(rows, orient="index")
+    def show_statistics(self):
+        print("wer_argmax_total is:", self.wer_argmax_total/self.counter_writings)
+        print("cer_argmax_total is:", self.cer_argmax_total/self.counter_writings)
+        print("wer_beam_total is:", self.wer_beam_total/self.counter_writings)
+        print("cer_beam_total is:", self.cer_beam_total/self.counter_writings)
