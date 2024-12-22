@@ -1,7 +1,7 @@
 defaults:
   - model: deep_speech
   - writer: wandb
-  - metrics: beam_search
+  - metrics: example
   - datasets: librispeechdataset
   - dataloader: deep_speech
   - transforms: example_only_instance
