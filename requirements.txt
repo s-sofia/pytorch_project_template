@@ -14,7 +14,7 @@ datasets
 pyctcdecode
 editdistance
 wget
-
+https://github.com/kpu/kenlm/archive/master.zip
 black
 isort
 pre-commit
