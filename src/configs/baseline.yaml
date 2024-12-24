@@ -17,7 +17,7 @@ loss_function:
   _target_: src.loss.ExampleLoss
 trainer:
   log_step: 50
-  n_epochs: 100
+  n_epochs: 5
   epoch_len: 500
   device_tensors: ["data_object", "labels"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
