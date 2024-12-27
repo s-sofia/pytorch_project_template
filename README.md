@@ -9,8 +9,10 @@ python3 inference.py HYDRA_CONFIG_ARGUMENTS
    ```
 
 ## Report
-[https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example?nw=nwusersekhovasn
-](https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example?nw=nwusersekhovasn)
-[https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example/runs/p6nvi9q4?nw=nwusersekhovasn
-](https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example/runs/svrmc9fg)
+
+https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example/runs/svrmc9fg?nw=nwusersekhovasn
+
+all runs
+https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example?nw=nwusersekhovasn
+
 Done by Lisichkina Sofia
