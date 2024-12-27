@@ -10,6 +10,9 @@ python3 inference.py HYDRA_CONFIG_ARGUMENTS
 
 ## How To Receive The Model
 The actual model architecture is in the file baseline_model.py, branch example/asr. It takes 10 epochs to get the model.
+   ```bash
+python3 train.py
+   ```
 
 ## Report
 
