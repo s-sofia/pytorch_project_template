@@ -8,6 +8,9 @@ pip install -r requirements.txt
 python3 inference.py HYDRA_CONFIG_ARGUMENTS
    ```
 
+## How To Receive The Model
+The actual model architecture is in the file baseline_model.py. It takes 10 epochs to get the model.
+
 ## Report
 
 https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example/runs/svrmc9fg?nw=nwusersekhovasn
