@@ -14,9 +14,11 @@ The actual model architecture is in the file baseline_model.py, branch example/a
 python3 train.py
    ```
 
+https://drive.google.com/file/d/1meQbb-FUj9sVAJtibQsRYqmjBNgrTVri/view?usp=sharing
+
 ## Report
 
-https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example/runs/svrmc9fg?nw=nwusersekhovasn
+https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example/runs/lyqntbam
 
 all runs
 https://wandb.ai/sekhova-sn-l/pytorch_template_asr_example?nw=nwusersekhovasn
